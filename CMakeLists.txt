@@ -15,4 +15,8 @@ set(TARGET_SOURCES src/main.cpp)
 add_executable(test_task ${TARGET_SOURCES})
 
 target_link_libraries(test_task PUBLIC curve)
-target_link_libraries(test_task PUBLIC ${TBB_IMPORTED_TARGETS})
+
+if (${TBB_FOUND})
+    add_definitions(-DTBB_FOUND)
+    target_link_libraries(test_task PUBLIC ${TBB_IMPORTED_TARGETS})
+endif()

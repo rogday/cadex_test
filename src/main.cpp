@@ -11,12 +11,11 @@
 #include <memory>
 
 #include <Curves.hpp>
-#include <tbb/tbb.h>
 
 std::vector<std::shared_ptr<curves::Curve>> gen_curves(const std::size_t N) {
   std::mt19937 gen(std::random_device{}());
 
-  std::uniform_real_distribution<double> dist(0.1, 5.);
+  std::uniform_real_distribution<double> dist(0.1, 42.);
   std::uniform_int_distribution<std::uint16_t> curve(0, 2);
 
   std::vector<std::shared_ptr<curves::Curve>> curves;
@@ -79,6 +78,11 @@ void print_curves(std::string_view title,
   std::cout << std::endl;
 }
 
+#if defined(TBB_FOUND)
+
+#include <tbb/parallel_reduce.h>
+#include <tbb/blocked_range.h>
+
 class Adder {
   const std::vector<std::shared_ptr<curves::Circle>> &m_data;
   double m_sum;
@@ -99,6 +103,22 @@ public:
   }
 };
 
+double radius_sum(const std::vector<std::shared_ptr<curves::Circle>> &circles) {
+  Adder adder(circles);
+  tbb::parallel_reduce(tbb::blocked_range<size_t>(0, std::size(circles)),
+                       adder);
+  return adder.get_sum();
+}
+#else
+double radius_sum(const std::vector<std::shared_ptr<curves::Circle>> &circles) {
+  return std::accumulate(
+      std::cbegin(circles), std::cend(circles), 0.,
+      [](double sum, const std::shared_ptr<curves::Circle> &circle) {
+        return sum + circle->get_radius();
+      });
+}
+#endif
+
 int main() {
   constexpr std::size_t N = 100;
 
@@ -111,10 +131,7 @@ int main() {
   print_curves("All curves", curves, t);
   print_curves("Sorted circles", circles, t);
 
-  Adder adder(circles);
-  tbb::parallel_reduce(tbb::blocked_range<size_t>(0, std::size(circles)),
-                       adder);
-  std::cout << "Circles radius_sum: " << adder.get_sum() << std::endl;
+  std::cout << "Circles radius_sum: " << radius_sum(circles) << std::endl;
 
   return 0;
 }
