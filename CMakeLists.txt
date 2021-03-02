@@ -16,7 +16,7 @@ else()
 endif()
 
 add_subdirectory(libcurve)
-find_package(TBB REQUIRED)
+find_package(TBB)
 
 set(TARGET_SOURCES src/main.cpp)
 add_executable(test_task ${TARGET_SOURCES})
