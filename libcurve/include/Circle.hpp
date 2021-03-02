@@ -10,7 +10,7 @@ private:
   const Ellipse m_ellipse;
 
 public:
-  Circle(const double radius) : m_ellipse(radius, radius) {}
+  explicit Circle(const double radius) : m_ellipse(radius, radius) {}
 
   Circle(const Circle &) = delete;
   Circle(Circle &&) = delete;

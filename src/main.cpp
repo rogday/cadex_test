@@ -1,14 +1,13 @@
-#include <iostream>
-#include <iomanip>
-
-#include <vector>
-#include <string_view>
-#include <cmath>
-#include <random>
 #include <algorithm>
-#include <numeric>
+#include <cmath>
 #include <functional>
+#include <iomanip>
+#include <iostream>
 #include <memory>
+#include <numeric>
+#include <random>
+#include <string_view>
+#include <vector>
 
 #include <Curves.hpp>
 
@@ -80,26 +79,27 @@ void print_curves(std::string_view title,
 
 #if defined(TBB_FOUND)
 
-#include <tbb/parallel_reduce.h>
 #include <tbb/blocked_range.h>
+#include <tbb/parallel_reduce.h>
 
 class Adder {
   const std::vector<std::shared_ptr<curves::Circle>> &m_data;
   double m_sum;
 
 public:
-  Adder(const std::vector<std::shared_ptr<curves::Circle>> &data)
+  explicit Adder(const std::vector<std::shared_ptr<curves::Circle>> &data)
       : m_data(data), m_sum(0.) {}
 
-  Adder(Adder &x, tbb::split) : Adder(x.m_data) {}
+  Adder(const Adder &x, tbb::split) : Adder(x.m_data) {}
 
   double get_sum() const noexcept { return m_sum; }
 
   void join(const Adder &y) { m_sum += y.m_sum; }
 
   void operator()(const tbb::blocked_range<size_t> &r) {
-    for (size_t i = r.begin(); i != r.end(); ++i)
+    for (size_t i = r.begin(); i != r.end(); ++i) {
       m_sum += m_data[i]->get_radius();
+    }
   }
 };
 

@@ -21,7 +21,7 @@ Vector3 Ellipse::get_first_derivative(const double t) const noexcept {
                  0.);
 }
 
-std::string_view Ellipse::get_name() const noexcept { return "Ellipse"; };
+std::string_view Ellipse::get_name() const noexcept { return "Ellipse"; }
 
 double Ellipse::get_radius_x() const noexcept { return m_radius_x; }
 double Ellipse::get_radius_y() const noexcept { return m_radius_y; }

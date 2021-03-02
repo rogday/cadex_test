@@ -7,6 +7,13 @@ set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 set(CMAKE_CXX_STANDARD 17)
 add_definitions(-D_USE_MATH_DEFINES)
+set(CMAKE_CXX_CLANG_TIDY clang-tidy -checks=-*,google-* -header-filter=. -warnings-as-errors=*)
+
+if(MSVC)
+  add_compile_options(/W4 /WX)
+else()
+  add_compile_options(-Wall -Wextra -pedantic -Werror)
+endif()
 
 add_subdirectory(libcurve)
 find_package(TBB REQUIRED)
