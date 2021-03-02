@@ -11,13 +11,16 @@
 
 #include <Curves.hpp>
 
-std::vector<std::shared_ptr<curves::Curve>> gen_curves(const std::size_t N) {
+using Circles = std::vector<std::shared_ptr<curves::Circle>>;
+using Curves = std::vector<std::shared_ptr<curves::Curve>>;
+
+Curves gen_curves(const std::size_t N) {
   std::mt19937 gen(std::random_device{}());
 
   std::uniform_real_distribution<double> dist(0.1, 42.);
   std::uniform_int_distribution<std::uint16_t> curve(0, 2);
 
-  std::vector<std::shared_ptr<curves::Curve>> curves;
+  Curves curves;
   curves.reserve(N);
 
   auto generator = [&](auto &&f) -> std::shared_ptr<curves::Curve> {
@@ -40,9 +43,8 @@ std::vector<std::shared_ptr<curves::Curve>> gen_curves(const std::size_t N) {
   return curves;
 }
 
-std::vector<std::shared_ptr<curves::Circle>>
-get_circles(const std::vector<std::shared_ptr<curves::Curve>> &curves) {
-  std::vector<std::shared_ptr<curves::Circle>> circles;
+Circles get_circles(const Curves &curves) {
+  Circles circles;
   circles.reserve(std::size(curves));
 
   // there is no transform_if sadly
@@ -83,12 +85,11 @@ void print_curves(std::string_view title,
 #include <tbb/parallel_reduce.h>
 
 class Adder {
-  const std::vector<std::shared_ptr<curves::Circle>> &m_data;
+  const Circles &m_data;
   double m_sum;
 
 public:
-  explicit Adder(const std::vector<std::shared_ptr<curves::Circle>> &data)
-      : m_data(data), m_sum(0.) {}
+  explicit Adder(const Circles &data) : m_data(data), m_sum(0.) {}
 
   Adder(const Adder &x, tbb::split) : Adder(x.m_data) {}
 
@@ -103,14 +104,14 @@ public:
   }
 };
 
-double radius_sum(const std::vector<std::shared_ptr<curves::Circle>> &circles) {
+double radius_sum(const Circles &circles) {
   Adder adder(circles);
   tbb::parallel_reduce(tbb::blocked_range<size_t>(0, std::size(circles)),
                        adder);
   return adder.get_sum();
 }
 #else
-double radius_sum(const std::vector<std::shared_ptr<curves::Circle>> &circles) {
+double radius_sum(const Circles &circles) {
   return std::accumulate(
       std::cbegin(circles), std::cend(circles), 0.,
       [](double sum, const std::shared_ptr<curves::Circle> &circle) {
@@ -122,9 +123,8 @@ double radius_sum(const std::vector<std::shared_ptr<curves::Circle>> &circles) {
 int main() {
   constexpr std::size_t N = 100;
 
-  const std::vector<std::shared_ptr<curves::Curve>> curves = gen_curves(N);
-  const std::vector<std::shared_ptr<curves::Circle>> circles =
-      get_circles(curves);
+  const Curves curves = gen_curves(N);
+  const Circles circles = get_circles(curves);
 
   constexpr double t = M_PI_4;
 
